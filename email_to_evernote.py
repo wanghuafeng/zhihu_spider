@@ -9,7 +9,7 @@ mailto_list = "mabotree.17d688f@m.yinxiang.com"
 # mailto_list = "wanghuafeng@baiwenbao.com"
 mail_host_server = "smtp.qiye.163.com"
 mail_user = 'wanghuafeng@baiwenbao.com'
-mail_password = 'Py03thon'
+mail_password = 'Py**thon'
 
 def to_evernote(mail_content):
     # mail_content = ''
