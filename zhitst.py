@@ -52,7 +52,7 @@ def post_to_get_topic_id():
 # post_to_get_topic_id()
 
 def get_questions_by_topic_id():
-    url = 'http://www.zhihu.com/topic/19553298/top-answers'
+    url = 'http://www.zhihu.com/topic/19553298/top-answers?page=1'
     r = requests.get(url)
     html = r.text
     soup = BeautifulSoup(html)
@@ -77,11 +77,8 @@ def get_questions_by_topic_id():
     answer_content = str(answer_content).decode('utf-8')
     # print answer_title
     # print answer_vote_count
-
-
-
     # return title, vote_count, answer_content
-get_questions_by_topic_id()
+# get_questions_by_topic_id()
 
 def get_answer_by_question_id():
     url = 'http://www.zhihu.com/question/20296247'
@@ -127,5 +124,5 @@ def gen_range_offset():
 def call_error_url():
     url = 'http://www.zhihu.com/topic/19555542/top-answers?page=36'
     r = requests.get(url)
-    print r.status_code
-# call_error_url()
+    print r.status_code == 404
+call_error_url()
