@@ -1,7 +1,9 @@
 __author__ = 'huafeng'
 #coding:utf-8
 import re
+import os
 import requests
+import codecs
 import time
 import json
 import subprocess
@@ -109,6 +111,10 @@ def get_answer_by_question_id():
     answer_item_content = answer_item.find('div', class_='zm-item-rich-text')
     # print answer_item_content
     # return str(answer_item_content).decode('utf-8')
+    #答案aid
+    data_aid = answer_item['data-aid']
+    print data_aid, '##########'
+
 # get_answer_by_question_id()
 
 def gen_range_offset():
@@ -121,8 +127,27 @@ def gen_range_offset():
         post_data['params'] = post_data['params'] % offset_index
         print post_data
 # gen_range_offset()
+
 def call_error_url():
     url = 'http://www.zhihu.com/topic/19555542/top-answers?page=36'
     r = requests.get(url)
     print r.status_code == 404
-call_error_url()
+# call_error_url()
+
+def send_question_content_to_email():
+    import email_to_evernote
+    mail_content_list = []
+    filename = os.path.join('question_json_data.txt')
+    with codecs.open(filename, encoding='utf-8') as f:
+        count = 0
+        for line in f.readlines():#5837
+            count += 1
+            json_data = json.loads(line)
+            title = json_data['title']
+            content = json_data['content']
+            mail_content_list.append(title + content)
+            if count % 20 == 0:
+                email_to_evernote.to_evernote(''.join(mail_content_list))
+                print count
+                mail_content_list =  []
+# send_question_content_to_email()

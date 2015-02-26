@@ -144,7 +144,7 @@ def get_question_by_topic_id(topic_id):
 
 def _load_topic_ids():
     '''读取所有的topic_id信息'''
-    filename = os.path.join(PATH, 'all_topic_id.txt')
+    filename = os.path.join(PATH, 'all_topic_id_1014.txt')
     return codecs.open(filename, encoding='utf-8').readlines()
 
 def get_all_question_ids():
@@ -160,10 +160,7 @@ def get_all_question_ids():
         topic_question_list = get_question_by_topic_id(topic_id)
         print len(topic_question_list)
         all_question_id_list.extend(topic_question_list)
-    codecs.open('whole_question_id.txt', mode='wb', encoding='utf-8').writelines([item+'\n' for item in all_question_id_list])
-get_all_question_ids()
-def remove_reqeat_ids():
-    question_id_filename = os.path.join(PATH, 'whole_question_id.txt')
-    with codecs.open(question_id_filename, encoding='utf-8') as f:
-        for line in f.readlines():
-            seen = set()
+    codecs.open('whole_question_id.txt', mode='wb', encoding='utf-8').writelines(set([item+'\n' for item in all_question_id_list]))
+# get_all_question_ids()
+
+#***********************************************************
