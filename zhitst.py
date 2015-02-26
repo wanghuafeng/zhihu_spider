@@ -135,6 +135,7 @@ def call_error_url():
 # call_error_url()
 
 def send_question_content_to_email():
+    '''将点赞数大于1000的回答内容发送到指定邮箱中'''
     import email_to_evernote
     mail_content_list = []
     filename = os.path.join('question_json_data.txt')
@@ -151,3 +152,18 @@ def send_question_content_to_email():
                 print count
                 mail_content_list =  []
 # send_question_content_to_email()
+def chose_humor_answer():
+    '''遍历所有'''
+    zhihu_root_url = 'http://www.zhihu.com'
+    filename = os.path.join('whole_question_id.txt')
+    with codecs.open(filename, encoding='utf-8') as f:
+        count = 0
+        for line in f.readlines():#5837
+            count += 1
+            json_data = json.loads(line)
+            content = json_data['content']
+            content_str = BeautifulSoup(content).text.strip()
+            if len(content_str) < 155:
+                print content_str
+                time.sleep(2)
+chose_humor_answer()

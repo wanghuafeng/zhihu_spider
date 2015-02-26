@@ -101,7 +101,7 @@ class ZhiHu(object):
 
 #**************************解析topic_id所对应url*********************************
 
-def get_question_list_from_topic_url(topic_url):
+def get_question_list_from_topic_url(topic_url, max_vote_count):
     '''根据topic_url解析出该页面中vote_count大于1000的所有question_id'''
     question_list = []
     r = requests.get(topic_url, timeout=15)
@@ -117,7 +117,7 @@ def get_question_list_from_topic_url(topic_url):
         #该topic下第一个问题的相关信息
         answer_id = answer_div.h2.a['href']
         answer_vote_count = answer_div.find('a', class_='zm-item-vote-count').text.strip()
-        if 'K' in answer_vote_count or int(answer_vote_count) > 1000:
+        if ('K' in answer_vote_count) or (int(answer_vote_count) > max_vote_count):
             # print answer_id, answer_vote_count
             question_list.append(answer_id)
     # print 'question_list len:', len(question_list)
@@ -125,14 +125,14 @@ def get_question_list_from_topic_url(topic_url):
 # url = 'http://www.zhihu.com/topic/19551147/top-answers?page=1'
 # get_question_list_from_topic_url(url)
 
-def get_question_by_topic_id(topic_id):
+def get_question_by_topic_id(topic_id, max_vote_count=1000):
     '''根据topic_id解析出vote_count大于1000的question_id,并返回'''
     topic_url_pattern = 'http://www.zhihu.com{}/top-answers?page=%s'.format(topic_id.rstrip())
     topic_question_list = []
     for page_index in range(1, 51):
         topic_url = topic_url_pattern % page_index
         #返回当前页中满足要求的question_id
-        one_page_question_list = get_question_list_from_topic_url(topic_url)
+        one_page_question_list = get_question_list_from_topic_url(topic_url, max_vote_count)
         #若返回question_list为空，则停止翻页
         if not one_page_question_list:
             return topic_question_list
@@ -162,5 +162,75 @@ def get_all_question_ids():
         all_question_id_list.extend(topic_question_list)
     codecs.open('whole_question_id.txt', mode='wb', encoding='utf-8').writelines(set([item+'\n' for item in all_question_id_list]))
 # get_all_question_ids()
+#***********************humor answer************************************
+def get_humor_answer_by_topic_id():
+    max_vote_count_limit = 500
+    topic_id_list = _load_topic_ids()
+    total_id_list_len = len(topic_id_list)
+    zhihu_root_url = 'http://www.zhihu.com'
+    # print 'total_id_list_len:', len(topic_id_list)
+    all_question_id_list = []
+    topic_index = 0
+    for topic_id in topic_id_list:
+        topic_index += 1
+        print total_id_list_len, topic_index,
+        topic_question_list = get_question_by_topic_id(topic_id, max_vote_count=max_vote_count_limit)
+        print len(topic_question_list)
+        for question_id in topic_question_list:
+            url = zhihu_root_url + question_id
+            r = requests.get(url, timeout=15)
+            html = r.text
+            soup = BeautifulSoup(html)
+            try:
+                main_content = soup.find('div', class_='zu-main-content')
+                answer_item_list = main_content.find_all('div', class_='zm-item-answer')
+                for answer_item in answer_item_list:
+                    vote_count = answer_item.find('span', class_='count').text
+                    #若点赞数大于1000，则将answer_id写入本地
+                    if ('K' in vote_count) or (int(vote_count)>max_vote_count_limit):
+                        answer_item_content = answer_item.find('div', class_='zm-item-rich-text')
+                        data_aid = answer_item['data-aid'].strip()
+                        print index
+                    else:
+                        # print vote_count, data_aid
+                        continue
+            except:
+                print url
 
+        # all_question_id_list.extend(topic_question_list)
+
+get_humor_answer_by_topic_id()
 #***********************************************************
+def get_answer_id():
+    '''抓取点赞数超过1000的回答的answer_id'''
+    zhihu_root_url = 'http://www.zhihu.com'
+    question_id_filename = os.path.join(PATH, 'question_ids.txt')
+    answer_id_set = set()
+    with codecs.open(question_id_filename, encoding='utf-8') as f:
+        index = 0
+        for line in f.readlines():
+            index += 1
+            question_id = line.rstrip()
+            url = zhihu_root_url + question_id
+            r = requests.get(url, timeout=15)
+            html = r.text
+            soup = BeautifulSoup(html)
+            try:
+                main_content = soup.find('div', class_='zu-main-content')
+                answer_item_list = main_content.find_all('div', class_='zm-item-answer')
+                for answer_item in answer_item_list:
+                    vote_count = answer_item.find('span', class_='count').text
+                    #若点赞数大于1000，则将answer_id写入本地
+                    if ('K' in vote_count) or (int(vote_count)>1000):
+                        answer_item_content = answer_item.find('div', class_='zm-item-rich-text')
+                        data_aid = answer_item['data-aid'].strip()
+                        answer_id_set.add(data_aid)
+                        print index
+                    else:
+                        # print vote_count, data_aid
+                        continue
+            except:
+                print url
+    codecs.open('answer_ids.txt', mode='wb', encoding='utf-8').writelines([item+'\n' for item in answer_id_set])
+# get_answer_id()
+
