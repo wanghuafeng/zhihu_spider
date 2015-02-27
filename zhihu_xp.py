@@ -225,7 +225,6 @@ def get_answer_by_question_id(url):
 # get_answer_by_question_id(url)
 
 # ***************************发送问题及答案到Evernote*******************************************
-from email_to_evernote import to_evernote
 # url = 'http://www.zhihu.com/question/19568396'
 def write_answer():
     url_pattern = 'http://www.zhihu.com'
