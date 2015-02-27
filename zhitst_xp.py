@@ -1,5 +1,5 @@
-__author__ = 'huafeng'
 #coding:utf-8
+__author__ = 'huafeng'
 import re
 import os
 import requests
@@ -114,6 +114,7 @@ def get_answer_by_question_id():
     #答案aid
     data_aid = answer_item['data-aid']
     print data_aid, '##########'
+
 # get_answer_by_question_id()
 
 def gen_range_offset():
@@ -132,9 +133,12 @@ def call_error_url():
     r = requests.get(url)
     print r.status_code == 404
 # call_error_url()
+import os
+import codecs
+with codecs.open('question_json_data.txt') as f:
+    codecs.open('a.html', mode='wb', encoding='utf-8').write(json.loads(f.readline())['content'])
 
 def send_question_content_to_email():
-    '''将点赞数大于1000的回答内容发送到指定邮箱中'''
     import email_to_evernote
     mail_content_list = []
     filename = os.path.join('question_json_data.txt')
@@ -151,13 +155,3 @@ def send_question_content_to_email():
                 print count
                 mail_content_list =  []
 # send_question_content_to_email()
-
-with codecs.open('humor_Q_A.txt', encoding='utf-8') as f:
-    for line in f.readlines():
-        json_line = json.loads(line)
-        Q = BeautifulSoup(json_line['Q']).text.strip()
-        A_str = BeautifulSoup(json_line['A']).text.strip()
-        A = '\nA:'.join(re.split('\n+', A_str))
-        print 'Q:', Q
-        print 'A:', A
-        time.sleep(1)
