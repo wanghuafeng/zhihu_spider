@@ -14,12 +14,6 @@ mail_host_server = "smtp.qiye.163.com"
 mail_user = 'wanghuafeng@baiwenbao.com'
 mail_password = 'Py03thon'
 
-def to_evernote(title, mail_content):
-    evernote_note_name = u'知乎'
-    msg = MIMEText(mail_content, _subtype='html', _charset='utf-8')
-    msg['Subject'] = u'%s@%s' % (title, evernote_note_name)
-
-
 def send_to_163_mail(mail_content):
     msg = MIMEText(mail_content, _subtype='html', _charset='utf-8')
     timestamp = time.strftime('%Y_%m_%d_%H%M%S')
