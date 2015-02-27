@@ -52,7 +52,7 @@ def send_question_content_to_email():
             content = json_data['content']
             mail_content_list.append(title + content)
             if count % 20 == 0:
-                to_evernote(''.join(mail_content_list))
+                send_to_163_mail(''.join(mail_content_list))
                 print count
                 mail_content_list =  []
 
@@ -60,7 +60,7 @@ if __name__ == "__main__":
     from zhihu import  get_answer_by_question_id
     url = 'http://www.zhihu.com/question/19568396'
     title, content = get_answer_by_question_id(url)
-    to_evernote(title,content)
+    send_email_to_evernote(title,content)
 
 
 # to_evernote('zhihu')
