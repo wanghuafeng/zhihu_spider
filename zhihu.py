@@ -1,4 +1,3 @@
-__author__ = 'wanghuafeng'
 #coding:utf-8
 import os
 import re
@@ -100,7 +99,6 @@ class ZhiHu(object):
     # print time.time() - start_time
 
 #**************************解析topic_id所对应url*********************************
-
 def get_question_list_from_topic_url(topic_url, max_vote_count):
     '''根据topic_url解析出该页面中vote_count大于1000的所有question_id'''
     question_list = []
@@ -120,10 +118,155 @@ def get_question_list_from_topic_url(topic_url, max_vote_count):
         if ('K' in answer_vote_count) or (int(answer_vote_count) > max_vote_count):
             # print answer_id, answer_vote_count
             question_list.append(answer_id)
-    # print 'question_list len:', len(question_list)
+        # print 'question_list len:', len(question_list)
     return question_list
 # url = 'http://www.zhihu.com/topic/19551147/top-answers?page=1'
 # get_question_list_from_topic_url(url)
+
+#**************************获取所有点赞数超过1000的问题*********************************
+def get_question_id():
+    '''获取所有点赞数超过1000的问题'''
+    def get_question_by_topic_id(topic_id):
+        '''根据topic_id解析出vote_count大于1000的question_id,并返回'''
+        topic_url_pattern = 'http://www.zhihu.com{}/top-answers?page=%s'.format(topic_id.rstrip())
+        topic_question_list = []
+        for page_index in range(1, 51):
+            topic_url = topic_url_pattern % page_index
+            #返回当前页中满足要求的question_id
+            one_page_question_list = get_question_list_from_topic_url(topic_url)
+            #若返回question_list为空，则停止翻页
+            if not one_page_question_list:
+                return topic_question_list
+            topic_question_list.extend(one_page_question_list)
+            # print topic_url, 'page_index:', page_index,
+        # print 'topic_question_list len:', len(topic_question_list)
+        return topic_question_list
+    # get_question_by_topic_id('/topic/19551147')
+
+    def _load_topic_ids():
+        '''读取所有的topic_id信息'''
+        filename = os.path.join(PATH, 'all_topic_id.txt')
+        return codecs.open(filename, encoding='utf-8').readlines()
+
+    def get_all_question_ids():
+        '''读取本地文件中的topic_id并解析所有大于1000的question_id'''
+        topic_id_list = _load_topic_ids()
+        total_id_list_len = len(topic_id_list)
+        # print 'total_id_list_len:', len(topic_id_list)
+        all_question_id_list = []
+        topic_index = 0
+        for topic_id in topic_id_list:
+            topic_index += 1
+            print total_id_list_len, topic_index,
+            topic_question_list = get_question_by_topic_id(topic_id)
+            print len(topic_question_list)
+            all_question_id_list.extend(topic_question_list)
+        codecs.open('whole_question_id.txt', mode='wb', encoding='utf-8').writelines([item+'\n' for item in all_question_id_list])
+    # get_all_question_ids()
+    def remove_reqeat_ids():
+        question_id_filename = os.path.join(PATH, 'whole_question_id.txt')
+        with codecs.open(question_id_filename, encoding='utf-8') as f:
+            line_list = f.readlines()
+            line_set = set(line_list)
+            print len(line_set), len(line_list)
+            codecs.open('question_ids.txt', mode='wb', encoding='utf-8').writelines(line_set)
+    # remove_reqeat_ids()
+
+#**************************获取所有点赞数超过1000的问题*********************************
+def get_answer_by_question_id(url):
+    r = requests.get(url)
+    html = r.text
+    soup = BeautifulSoup(html)
+
+    #html main content
+    main_content = soup.find('div', class_='zu-main-content')
+
+    #问题title,作为印象笔记的标题
+    question_title_span = main_content.find('div', id='zh-question-title')
+
+    if not hasattr(question_title_span, 'text'):
+        return
+
+    question_title = question_title_span.text
+
+    #封装“问题title”到html标签中，写入印象笔记文本的第一行
+    question_title_href = '<h3><a href="%s" target="_blank">%s</a></h3>' % (url, question_title)
+    # print question_title_href
+    #问题内容描述
+    question_detail = main_content.find('div', id='zh-question-detail')
+    question_detail = str(question_detail).decode('utf-8')
+
+    #合并问题标题和内容
+    question_info = question_title_href + question_detail
+
+    answer_item_list = main_content.find_all('div', class_='zm-item-answer')
+    # print len(answer_item_list)
+
+    answer_content_list = []
+    for answer_item in answer_item_list:
+        #赞同数量
+        vote_count_span = answer_item.find('span', class_='count')
+        if not hasattr(vote_count_span, 'text'):
+            continue
+        vote_count = vote_count_span.text
+        # print vote_count
+        if ('K' in vote_count) or (int(vote_count) > 1000):
+            #回答的具体内容
+            answer_item_content = answer_item.find('div', class_='zm-item-rich-text')
+            answer_content_list.append('<br>*******************vote_count:%s*********************'%vote_count)
+            answer_content_list.append(str(answer_item_content).decode('utf-8'))
+    # print len(answer_content_list)
+    answer_contents = ''.join(answer_content_list)
+    # print answer_contents
+    return question_title, question_info + answer_contents
+# url = 'http://www.zhihu.com/question/19568396'
+# get_answer_by_question_id(url)
+
+# ***************************发送问题及答案到Evernote*******************************************
+# url = 'http://www.zhihu.com/question/19568396'
+def write_answer():
+    url_pattern = 'http://www.zhihu.com'
+    filename = os.path.join(PATH, 'question_ids.txt')
+    json_filename = os.path.join(PATH, 'question_json_data.txt')
+    with codecs.open(filename, encoding='utf-8') as f, \
+    codecs.open(json_filename, mode='wb', encoding='utf-8') as wf:
+        index = 0
+        for line in f.readlines():
+            index += 1
+            print 'question index:', index
+            url = url_pattern + line.strip()
+            try:
+                title, question_info_content = get_answer_by_question_id(url)
+                json_str = json.dumps({'title': title, 'content':question_info_content}) + '\n'
+                wf.write(json_str)
+            except:
+                print url
+                continue
+            # to_evernote(title, content)
+            # print 'send sucessed...'
+def send_to_evernote():
+    from email_to_evernote import send_email_to_evernote
+    filename = os.path.join(PATH, 'question_json_data.txt')
+    with codecs.open(filename, encoding='utf-8') as f:
+        range_from = 0
+        index = range_from
+        content_list = []
+        for line in f.readlines()[range_from:]:
+            index += 1
+            print 'index:', index
+            line_json = json.loads(line.rstrip())
+            content = line_json['content']
+            content_list.append(content)
+            print 'len(content_list):', len(content_list)
+            if index % 20 == 0:
+                content_20_str = ''.join(content_list)
+                send_email_to_evernote(str(index), content_20_str)
+                print 'sending sucess...'
+                content_list = []
+                # title = line_json['title']
+                # content = line_json['content']
+                # to_evernote(title, content)
+# send_to_evernote()
 
 def get_question_by_topic_id(topic_id, max_vote_count=1000):
     '''根据topic_id解析出vote_count大于1000的question_id,并返回'''
@@ -218,9 +361,37 @@ def get_humor_answer_by_topic_id():
         except Exception, e:
             print e,
             print url
-    # print '*'*40
+            # print '*'*40
 # get_humor_answer_by_topic_id()
+def save_Q_A():
+    '''将humor_Q_A文件中问题与回答转换格式后写入本地'''
+    qa_list = []
+    with codecs.open('humor_Q_A.txt', encoding='utf-8') as f:
+        for line in f.readlines():
+            json_line = json.loads(line)
+            Q = BeautifulSoup(json_line['Q']).text.strip()
+            A_str = BeautifulSoup(json_line['A']).text.strip()
+            A = 'A:' + '<br>A:'.join(re.split('\n\n+', A_str))
+            Q_A_str = '<table><tr><td><a href="">%s</a><br>%s</tr></td></table>\n' % (Q, A)
+            qa_list.append(Q_A_str)
+    codecs.open('Q_A.txt', mode='wb', encoding='utf-8').writelines(qa_list)
 
+def mail_Q_A(mail_to):
+    '''神回复发送到邮箱中'''
+    from email_to_evernote import send_to_163_mail
+    qa_list = []
+    with codecs.open('humor_Q_A.txt', encoding='utf-8') as f:
+        for line in f.readlines():
+            json_line = json.loads(line)
+            Q = BeautifulSoup(json_line['Q']).text.strip()
+            A_str = BeautifulSoup(json_line['A']).text.strip()
+            A = 'A:' + '<br>A:'.join(re.split('\n\n+', A_str))
+            Q_A_str = '<table><tr><td><a href="">%s</a><br>%s</tr></td></table>\n' % (Q, A)
+            qa_list.append(Q_A_str)
+        mail_content = ''.join(qa_list)
+        send_to_163_mail(mail_content, mail_to)
+# mail_to = "sivilwang@163.com"
+# mail_Q_A(mail_to)
 #***********************************************************
 def get_answer_id():
     '''抓取点赞数超过1000的回答的answer_id'''
@@ -253,4 +424,6 @@ def get_answer_id():
             except:
                 print url
     codecs.open('answer_ids.txt', mode='wb', encoding='utf-8').writelines([item+'\n' for item in answer_id_set])
-# get_answer_id()
+    # get_answer_id()
+
+#***********************************************************
