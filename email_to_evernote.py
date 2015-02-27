@@ -3,21 +3,20 @@ import smtplib
 import time
 from email.MIMEText import MIMEText
 
-
-
 # mailto_list = "mabotree.17d688f@m.yinxiang.com"
 # mailto_list = 'wanghuafengc.4742cf0@m.yinxiang.com '
 # mailto_list = "wanghuali225.972fe30@m.yinxiang.com"
 # mailto_list = "mabotree.17d688f@m.yinxiang.com"
-mailto_list = "sivilwang@163.com"
+# mailto_list = "sivilwang@163.com"
+mailto_list = 'zhang_jie1231@163.com'
 mail_host_server = "smtp.qiye.163.com"
 mail_user = 'wanghuafeng@baiwenbao.com'
 mail_password = 'Py03thon'
 
-def send_to_163_mail(mail_content):
+def send_to_163_mail(mail_content, mailto_list):
     msg = MIMEText(mail_content, _subtype='html', _charset='utf-8')
     timestamp = time.strftime('%Y_%m_%d_%H%M%S')
-    msg['Subject'] = timestamp
+    msg['Subject'] = 'humor ' + timestamp
     msg['From'] = mail_user
 
     s = smtplib.SMTP()

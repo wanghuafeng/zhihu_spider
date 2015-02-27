@@ -6,6 +6,7 @@ import json
 import codecs
 import requests
 from bs4 import BeautifulSoup
+from email_to_evernote import send_to_163_mail
 
 PATH = os.path.dirname(os.path.abspath(__file__))
 
@@ -312,7 +313,11 @@ def get_humor_answer_by_topic_id():
     total_id_list_len = len(topic_id_list)
     zhihu_root_url = 'http://www.zhihu.com'
     # print 'total_id_list_len:', len(topic_id_list)
-    fileObj_write = codecs.open('humor_Q_A.txt', mode='ab', encoding='utf-8')
+
+    #所有answer_id的集合
+    answer_id_set = set([item.rstrip() for item in codecs.open('humer_Q_A_answer_id.txt', encoding='utf-8').readlines()])
+
+    humor_Q_A_fileObj = codecs.open(time.strftime('humor_Q_A_%Y_%m_%d.txt'), mode='ab', encoding='utf-8')
     answer_id_obj = codecs.open('humer_Q_A_answer_id.txt', mode='ab', encoding='utf-8')
     topic_index = 0
 
@@ -335,32 +340,33 @@ def get_humor_answer_by_topic_id():
         soup = BeautifulSoup(html)
         try:
             main_content = soup.find('div', class_='zu-main-content')
-            # question_title = main_content.find('div', id='zh-question-title')
+            question_title = main_content.find('div', id='zh-question-title')
             answer_item_list = main_content.find_all('div', class_='zm-item-answer')
             for answer_item in answer_item_list:
                 vote_count = answer_item.find('span', class_='count').text
                 #若点赞数大于1000，则将answer_id写入本地
                 if ('K' in vote_count) or (int(vote_count)>max_vote_count_limit):
-                    question_title = main_content.find('div', id='zh-question-title')
-                    answer_item_content = answer_item.find('div', class_='zm-item-rich-text')
-                    answer_item_content_str = answer_item_content.text.strip()
+                    answer_item_content = answer_item.find('div', class_='zm-item-rich-text')#div answer
+                    answer_item_content_str = answer_item_content.text.strip()#answer文本信息
+                    data_aid = answer_item['data-aid'].strip()#answer id 信息
 
-                    if len(answer_item_content_str) < 100:
+                    #若答案的文本长度小于120，且该answer_id不包含在answer_id_set中，则为未收录answer
+                    if  (data_aid not in answer_id_set) and (len(answer_item_content_str) < 100):
                         # print answer_item_content_str
                         answer_list.append(str(answer_item_content).decode('utf-8'))
-
                         #将该answer对应的id写入到写入到本地
-                        data_aid = answer_item['data-aid'].strip()
                         answer_id_obj.write(data_aid + '\n')
                 else:
                     continue
             if answer_list:
                 Q_A_dic = {'Q':str(question_title).decode('utf-8'), 'A':''.join(answer_list)}
                 json_data = json.dumps(Q_A_dic)
-                fileObj_write.write(json_data + '\n')
+                humor_Q_A_fileObj.write(json_data + '\n')
         except Exception, e:
-            print e,
-            print url
+            print e,url
+        finally:
+            humor_Q_A_fileObj.close()
+            answer_id_obj.close()
             # print '*'*40
 # get_humor_answer_by_topic_id()
 def save_Q_A():
@@ -378,7 +384,6 @@ def save_Q_A():
 
 def mail_Q_A(mail_to):
     '''神回复发送到邮箱中'''
-    from email_to_evernote import send_to_163_mail
     qa_list = []
     with codecs.open('humor_Q_A.txt', encoding='utf-8') as f:
         for line in f.readlines():
