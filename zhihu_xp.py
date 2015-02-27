@@ -364,6 +364,22 @@ def get_humor_answer_by_topic_id():
             print url
             # print '*'*40
 # get_humor_answer_by_topic_id()
+def save_Q_A_on_github():
+    '''将humor_Q_A文件中问题与回答转换格式后写入github中'''
+    qa_list = []
+    with codecs.open('humor_Q_A.txt', encoding='utf-8') as f:
+        for line in f.readlines():
+            json_line = json.loads(line)
+            Q = BeautifulSoup(json_line['Q']).text.strip()
+            A_str = BeautifulSoup(json_line['A']).text.strip()
+            A = 'A:' + '<br>A:'.join(re.split('\n\n+', A_str))
+            # print 'Q:', Q
+            # print 'A:', A
+            Q_A_str = '<table><tr><td><a href="">%s</a><br>%s</tr></td></table>\n' % (Q, A)
+            # print Q_A_str
+            # time.sleep(.5)
+            qa_list.append(Q_A_str)
+    codecs.open('Q_A.txt', mode='wb', encoding='utf-8').writelines(qa_list)
 
 #***********************************************************
 def get_answer_id():
