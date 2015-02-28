@@ -83,7 +83,7 @@ def get_questions_by_topic_id():
 # get_questions_by_topic_id()
 
 def get_answer_by_question_id():
-    url = 'http://www.zhihu.com/question/20296247'
+    url = 'http://www.zhihu.com/question/27705700'
     r = requests.get(url)
     html = r.text
     soup = BeautifulSoup(html)
@@ -109,7 +109,8 @@ def get_answer_by_question_id():
     print commant_count
     #回答的具体内容
     answer_item_content = answer_item.find('div', class_='zm-item-rich-text')
-    # print answer_item_content
+    print '*'*30
+    print answer_item_content
     # return str(answer_item_content).decode('utf-8')
     #答案aid
     data_aid = answer_item['data-aid']
@@ -151,4 +152,7 @@ def send_question_content_to_email():
                 print count
                 mail_content_list =  []
 # send_question_content_to_email()
-
+def convert_to_html_pattern():
+    '''图片信息被抓回时, 尖括号标签被表示为了: &lt; &gt;'''
+    s = '&lt;img src="http://pic1.zhimg.com/173a37c02a90d9c70b764a87ccca876c_b.jpg" data-rawwidth="354" data-rawheight="107" class="content_image" width="354"&gt;'
+    print s.replace('&lt;', '<').replace('&gt;', '>')
