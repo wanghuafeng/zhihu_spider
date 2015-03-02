@@ -102,6 +102,8 @@ class ZhihuTopicId(object):
     #     zhihu.get_topic_id('1027')
 
 #**************************获取所有点赞数超过1000的问题*********************************
+# class LenAnswer(object):
+
 def get_question_id():
     '''获取所有点赞数超过1000的问题'''
     def get_question_by_topic_id(topic_id):
@@ -200,8 +202,6 @@ def get_answer_by_question_id(url):
 # url = 'http://www.zhihu.com/question/19568396'
 # get_answer_by_question_id(url)
 
-# ***************************发送问题及答案到Evernote*******************************************
-# url = 'http://www.zhihu.com/question/19568396'
 def write_answer():
     url_pattern = 'http://www.zhihu.com'
     filename = os.path.join(PATH, 'question_ids.txt')
@@ -222,6 +222,8 @@ def write_answer():
                 continue
             # to_evernote(title, content)
             # print 'send sucessed...'
+
+
 def send_to_evernote():
     from email_to_evernote import send_email_to_evernote
     filename = os.path.join(PATH, 'question_json_data.txt')
@@ -330,7 +332,7 @@ def get_all_question_ids():
     codecs.open('whole_question_id.txt', mode='wb', encoding='utf-8').writelines(set([item+'\n' for item in all_question_id_list]))
 # get_all_question_ids()
 #***********************humorous answer************************************
-class HumorAnswer():
+class HumorAnswer(object):
     '''获取知乎humor answer'''
     def __init__(self):
         self.total_question_id_set = set()
@@ -394,7 +396,7 @@ class HumorAnswer():
                             if answer_item_content_str.startswith('&lt;'):
                                 answer_item_content_str = answer_item_content_str.replace('&lt;', '<').replace('&gt;', '>')
 
-                            answer_text = 'A:%s<br>' % answer_item_content_str
+                            answer_text = 'A:%s<br><div width="%s">' % (answer_item_content_str, answer_id)
                             answer_text_list.append(answer_text)
 
                             #该answer对应的id
@@ -420,10 +422,11 @@ class HumorAnswer():
         humor_Q_A_fileObj.close()
         answer_id_obj.close()
 
-    def save_Q_A(self):
+    @staticmethod
+    def save_Q_A():
         '''将humor_Q_A文件中问题与回答转换格式后写入本地'''
         qa_list = []
-        with codecs.open('humor_Q_A_2015_02_28.txt', encoding='utf-8') as f:
+        with codecs.open('data/humor_Q_A_old_version2.txt', encoding='utf-8') as f:
             for line in f.readlines():
                 json_line = json.loads(line)
                 Q = BeautifulSoup(json_line['Q']).text.strip()
@@ -441,9 +444,10 @@ class HumorAnswer():
         # send_to_163_mail(''.join(qa_list), mail_to)
 
         #写入到本地
-        # codecs.open('Q_A.txt', mode='wb', encoding='utf-8').writelines(qa_list)
+        codecs.open('Q_A.txt', mode='wb', encoding='utf-8').writelines(qa_list)
 
-    def mail_Q_A(self, mail_to):
+    @staticmethod
+    def mail_Q_A(mail_to):
         '''神回复发送到邮箱中'''
         qa_list = []
         with codecs.open('humor_Q_A.txt', encoding='utf-8') as f:
@@ -451,27 +455,26 @@ class HumorAnswer():
                 json_line = json.loads(line)
                 Q = json_line['Q']
                 A = json_line['A']
-                Q_A_str = '<table><tr><td><font color="#4EABF9"><u>%s</u></font><br>%s</td></tr></table>\n' % (Q, A)
+                Q_A_str = '<div><tr><td><font color="#4EABF9"><u>%s</u></font><br>%s</td></tr></div>\n' % (Q, A)
                 qa_list.append(Q_A_str)
             mail_content = ''.join(qa_list)
             send_to_163_mail(mail_content, mail_to)
     # mail_to = "sivilwang@163.com"
     # mail_Q_A(mail_to)
-
 if __name__ == "__main__":
-    humor = HumorAnswer()
-    def get_question_ids_test():
-        start = time.time()
-        humor.get_question_ids_by_topic_id()
-        print time.time() - start
-        codecs.open('sys/questions_id_0228.txt', mode='wb', encoding='utf-8').writelines([item+'\n'for item in humor.total_question_id_set])#11343
+#     humor = HumorAnswer()
+#     def get_question_ids_test():
+#         start = time.time()
+#         humor.get_question_ids_by_topic_id()
+#         print time.time() - start
+#         codecs.open('sys/questions_id_0228.txt', mode='wb', encoding='utf-8').writelines([item+'\n'for item in humor.total_question_id_set])#11343
     # get_question_ids_test()
-    def get_answer_id_test():
-        start = time.time()
-        humor.get_humor_answer_by_question_id()
-        print time.time() - start
+    # def get_answer_id_test():
+    #     start = time.time()
+    #     humor.get_humor_answer_by_question_id()
+    #     print time.time() - start
     # get_answer_id_test()
-    humor.save_Q_A()
+    HumorAnswer.save_Q_A()
 #***********************************************************
 def get_answer_id():
     '''抓取点赞数超过1000的回答的answer_id'''

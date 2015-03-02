@@ -156,3 +156,6 @@ def convert_to_html_pattern():
     '''图片信息被抓回时, 尖括号标签被表示为了: &lt; &gt;'''
     s = '&lt;img src="http://pic1.zhimg.com/173a37c02a90d9c70b764a87ccca876c_b.jpg" data-rawwidth="354" data-rawheight="107" class="content_image" width="354"&gt;'
     print s.replace('&lt;', '<').replace('&gt;', '>')
+
+# with codecs.open('sys/questions_id_0228.txt', encoding='utf-8') as f:
+#     print len(f.readlines())
