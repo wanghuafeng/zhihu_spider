@@ -11,7 +11,7 @@ from email.mime.text import MIMEText
 mailto_list = 'zhang_jie1231@163.com'
 mail_host_server = "smtp.qiye.163.com"
 mail_user = 'wanghuafeng@baiwenbao.com'
-mail_password = 'Py03thon'
+mail_password = 'Py**thon'
 
 def send_to_163_mail(mail_content, mailto_list):
     '''发送至邮箱'''
