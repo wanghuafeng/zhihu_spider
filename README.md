@@ -6,7 +6,8 @@
 
 sys文件夹:
 （1）cat_id_mapping_34.txt，话题广场的34个话题及其对应的id，用于抓取topic_id
-（2）all_topic_id.txt，34个话题所对应的所有topic_id(共1524)(遍历34个id抓取topic_id耗时：16.4s)
+（2）all_topic_id.txt，34个话题所对应的所有topic_id(共1524)
+	(遍历34个id抓取topic_id耗时：16.4s)
 
 data文件夹:
 question_ids.txt文件
