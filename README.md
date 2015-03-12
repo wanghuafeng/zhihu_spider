@@ -7,6 +7,6 @@ sys文件夹:
 
 data文件夹:    
 question_ids.txt文件    
-<pre>	所有词频大于500、回复字数在100以内的数据保存在humor_Q_A_old_version1.txt文件中</pre>    
-<pre>	所有词频大于500、回复字数在100-150的数据保存在humor_Q_A_old_version2.txt文件中</pre>    
+<div><pre>	所有词频大于500、回复字数在100以内的数据保存在humor_Q_A_old_version1.txt文件中    
+所有词频大于500、回复字数在100-150的数据保存在humor_Q_A_old_version2.txt文件中</pre></div>    
 
