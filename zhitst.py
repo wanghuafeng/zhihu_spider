@@ -136,7 +136,7 @@ def call_error_url():
 # call_error_url()
 
 def send_question_content_to_email():
-    import email_to_evernote
+    import mail_send
     mail_content_list = []
     filename = os.path.join('question_json_data.txt')
     with codecs.open(filename, encoding='utf-8') as f:
@@ -148,7 +148,7 @@ def send_question_content_to_email():
             content = json_data['content']
             mail_content_list.append(title + content)
             if count % 20 == 0:
-                email_to_evernote.send_email_to_evernote(''.join(mail_content_list))
+                mail_send.send_email_to_evernote(''.join(mail_content_list))
                 print count
                 mail_content_list =  []
 # send_question_content_to_email()
@@ -159,3 +159,40 @@ def convert_to_html_pattern():
 
 # with codecs.open('sys/questions_id_0228.txt', encoding='utf-8') as f:
 #     print len(f.readlines())
+# import mail_send
+# with codecs.open(r'E:\github\zhihu\text_data\zhihu_v500_l100-150_d20150301.html') as f:
+#     mail_send.send_to_163_mail(f.read(), 'sivilwang@163.com')
+def remove_repeat():
+    with codecs.open('question_id_500.txt') as f:
+        line_list = f.readlines()
+        print len(line_list)
+        print len(set(line_list))
+        codecs.open('question_id_500.txt', mode='wb').writelines(set(line_list))
+
+total_line_set = set()
+with codecs.open('./sys/all_question_id.txt') as f:
+    for line in f:
+        total_line_set.add(line)
+codecs.open('question_id.txt', mode='wb').writelines(total_line_set)
+
+def chg():
+    new_line_list = []
+    with codecs.open('question_id_500.txt') as f:
+        index = 0
+        for line in f.readlines():
+            index += 1
+            new_line_list.append(line)
+
+    list_lenght = len(new_line_list) #文件总行数
+    file_count = 3  #文件被分割为file_count份，并分别写入到文件中
+    partial_count = list_lenght/file_count
+    for file_index in range(file_count):
+        range_start = partial_count * file_index
+        range_end = partial_count * (file_index + 1)
+        print range_start, range_end
+        if file_index == file_count - 1:
+            codecs.open('question_id_500_%s.txt' % file_index, mode='wb').writelines(new_line_list[range_start:])
+        else:
+            codecs.open('question_id_500_%s.txt' % file_index, mode='wb').writelines(new_line_list[range_start:range_end])
+# chg()
+

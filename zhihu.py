@@ -6,151 +6,10 @@ import json
 import codecs
 import requests
 from bs4 import BeautifulSoup
-from email_to_evernote import send_to_163_mail
+from mail_send import send_to_163_mail
 
 PATH = os.path.dirname(os.path.abspath(__file__))
 
-class ZhihuTopicId(object):
-    '''根据文件cat_id_mapping_34中的话题，解析出所有话题对应的topic_id，并写入本地'''
-    topic_root_url = 'http://www.zhihu.com/topics'#话题广场根目录
-    root_url = 'http://www.zhihu.com'#根目录
-
-    def __init__(self):
-        self.chosen_id_list = []
-        self._load_cat_id()
-
-    def _load_cat_id(self):
-        '''读取本地文件中不以#号开头的id信息，保存到self.chosen_id_list中'''
-        filename = os.path.join(PATH, 'cat_id_mapping_34.txt')
-        with codecs.open(filename, encoding='utf-8') as f:
-            for line in f.readlines():
-                if not line.startswith('#'):
-                    # print line.strip()
-                    topic_id = line.strip().split('\t')[-1]
-                    self.chosen_id_list.append(topic_id)
-            print len(self.chosen_id_list)
-
-    def log_record(self):
-        '''生成log句柄，用于记录日志'''
-        log_filename = time.strftime('%Y_%m_%d.log')
-        log_file = os.path.join(PATH, 'log', log_filename)
-        self.log = codecs.open(log_file, mode='a', encoding='utf-8')
-
-    def gen_all_topic_url_list(self):
-        '''解析根目录页面，获取所有话题url'''
-        try:
-            html = requests.get(self.topic_root_url).text
-        except BaseException:
-            print 'request time out...'
-            try:
-                html = requests.get(self.topic_root_url).text
-            except BaseException:
-                print 'request time out...'
-                timeFormat = time.strftime('%Y_%m_%d_%H:%M:%S')
-                self.log.write("%s--topic root url log timeed out\n"%timeFormat)
-                return []
-        soup = BeautifulSoup(html)
-        url_str = soup.find('ul', class_="zm-topic-cat-main clearfix")
-        url_li_list = url_str.find_all('li', attrs={'data-id':True})
-        print url_li_list
-        url_list = [(item.a.text, item['data-id']) for item in url_li_list]
-        print url_list
-        codecs.open('cat_id_mapping.txt', mode='wb', encoding='utf-8').writelines([('\t'.join(item) + '\n') for item in url_list])
-
-    def get_cookie_param(self):
-        '''获取cookie信息'''
-        cookie = requests.get(self.topic_root_url).cookies.get('_xsrf')
-        print 'cookie info: ', cookie
-        return cookie
-
-    def get_topic_id(self, cattopic_id):
-        '''由cattopic_id获取topic_id，这里去zhihu默认的请求次数（3次），即每个cattopic_id对应60个topic_id(/topic/19553298)'''
-        topic_url = 'http://www.zhihu.com/node/TopicsPlazzaListV2'
-        total_topic_id_set = set()
-        for offset_index in range(3):
-            post_data = {
-                'method':'next',
-                'params':'{"topic_id":%s,"offset":%d,"hash_id":""}',
-                '_xsrf':'9095d080aa27b6669de39a5a5eb9c439',
-                }
-            post_data['params'] = post_data['params'] % (cattopic_id, offset_index*20)
-            # print post_data
-            json_html = requests.post(topic_url, data=post_data).text
-            json_data = json.loads(json_html)
-            msg_list = json_data.get('msg')
-            # print len(msg_list)
-            topic_url_list = [BeautifulSoup(item).find('a')['href'] for item in msg_list]
-            # print topic_url_list#/topic/19553298
-            total_topic_id_set |= set(topic_url_list)
-        print len(total_topic_id_set)
-        return total_topic_id_set
-
-    def write_all_topic_id(self):
-        total_id_set = set()
-        for cattopic_id in self.chosen_id_list:
-            total_id_set |= self.get_topic_id(cattopic_id)
-        print len(total_id_set)#1524据个人习惯过滤后，余22个标签的1014个topic_id
-        codecs.open('sys/all_topic_id.txt', mode='wb', encoding='utf-8').writelines([item+'\n' for item in total_id_set])
-# if __name__ == "__main__":
-#     zhihu = ZhihuTopicId()
-#     start_time = time.time()
-#     zhihu.write_all_topic_id()
-#     print time.time() - start_time
-    # def utils_test():
-    #     zhihu.gen_all_topic_url_list()
-    #     zhihu.get_cookie_param()
-    #     zhihu.get_topic_id('1027')
-
-#**************************获取所有点赞数超过1000的问题*********************************
-# class LenAnswer(object):
-
-def get_question_id():
-    '''获取所有点赞数超过1000的问题'''
-    def get_question_by_topic_id(topic_id):
-        '''根据topic_id解析出vote_count大于1000的question_id,并返回'''
-        topic_url_pattern = 'http://www.zhihu.com{}/top-answers?page=%s'.format(topic_id.rstrip())
-        topic_question_list = []
-        for page_index in range(1, 51):
-            topic_url = topic_url_pattern % page_index
-            #返回当前页中满足要求的question_id
-            one_page_question_list = get_question_list_from_topic_url(topic_url)
-            #若返回question_list为空，则停止翻页
-            if not one_page_question_list:
-                return topic_question_list
-            topic_question_list.extend(one_page_question_list)
-            # print topic_url, 'page_index:', page_index,
-        # print 'topic_question_list len:', len(topic_question_list)
-        return topic_question_list
-    # get_question_by_topic_id('/topic/19551147')
-
-    def _load_topic_ids():
-        '''读取所有的topic_id信息'''
-        filename = os.path.join(PATH, 'all_topic_id.txt')
-        return codecs.open(filename, encoding='utf-8').readlines()
-
-    def get_all_question_ids():
-        '''读取本地文件中的topic_id并解析所有大于1000的question_id'''
-        topic_id_list = _load_topic_ids()
-        total_id_list_len = len(topic_id_list)
-        # print 'total_id_list_len:', len(topic_id_list)
-        all_question_id_list = []
-        topic_index = 0
-        for topic_id in topic_id_list:
-            topic_index += 1
-            print total_id_list_len, topic_index,
-            topic_question_list = get_question_by_topic_id(topic_id)
-            print len(topic_question_list)
-            all_question_id_list.extend(topic_question_list)
-        codecs.open('whole_question_id.txt', mode='wb', encoding='utf-8').writelines([item+'\n' for item in all_question_id_list])
-    # get_all_question_ids()
-    def remove_reqeat_ids():
-        question_id_filename = os.path.join(PATH, 'whole_question_id.txt')
-        with codecs.open(question_id_filename, encoding='utf-8') as f:
-            line_list = f.readlines()
-            line_set = set(line_list)
-            print len(line_set), len(line_list)
-            codecs.open('question_ids.txt', mode='wb', encoding='utf-8').writelines(line_set)
-    # remove_reqeat_ids()
 
 #**************************获取所有点赞数超过1000的问题*********************************
 def get_answer_by_question_id(url):
@@ -225,7 +84,7 @@ def write_answer():
 
 
 def send_to_evernote():
-    from email_to_evernote import send_email_to_evernote
+    from mail_send import send_email_to_evernote
     filename = os.path.join(PATH, 'question_json_data.txt')
     with codecs.open(filename, encoding='utf-8') as f:
         range_from = 0
@@ -426,7 +285,7 @@ class HumorAnswer(object):
     def save_Q_A():
         '''将humor_Q_A文件中问题与回答转换格式后写入本地'''
         qa_list = []
-        with codecs.open('data/humor_Q_A_old_version2.txt', encoding='utf-8') as f:
+        with codecs.open('./data/humor_Q_A_old_version2.txt', encoding='utf-8') as f:
             for line in f.readlines():
                 json_line = json.loads(line)
                 Q = BeautifulSoup(json_line['Q']).text.strip()
@@ -450,7 +309,7 @@ class HumorAnswer(object):
     def mail_Q_A(mail_to):
         '''神回复发送到邮箱中'''
         qa_list = []
-        with codecs.open('humor_Q_A.txt', encoding='utf-8') as f:
+        with codecs.open('./data/humor_Q_A_old_version1.txt', encoding='utf-8') as f:
             for line in f.readlines():
                 json_line = json.loads(line)
                 Q = json_line['Q']
@@ -459,10 +318,10 @@ class HumorAnswer(object):
                 qa_list.append(Q_A_str)
             mail_content = ''.join(qa_list)
             send_to_163_mail(mail_content, mail_to)
-    # mail_to = "sivilwang@163.com"
-    # mail_Q_A(mail_to)
+    mail_to = "sivilwang@163.com"
+    mail_Q_A(mail_to)
 if __name__ == "__main__":
-#     humor = HumorAnswer()
+    humor = HumorAnswer()
 #     def get_question_ids_test():
 #         start = time.time()
 #         humor.get_question_ids_by_topic_id()
@@ -474,7 +333,7 @@ if __name__ == "__main__":
     #     humor.get_humor_answer_by_question_id()
     #     print time.time() - start
     # get_answer_id_test()
-    HumorAnswer.save_Q_A()
+    # HumorAnswer.save_Q_A()
 #***********************************************************
 def get_answer_id():
     '''抓取点赞数超过1000的回答的answer_id'''
