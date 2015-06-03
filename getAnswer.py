@@ -70,7 +70,7 @@ class GetAnswer(object):
                             if answer_item_content_str.startswith('&lt;'):
                                 answer_item_content_str = answer_item_content_str.replace('&lt;', '<').replace('&gt;', '>')
 
-                            answer_text = 'A:%s<br><div width="%s">' % (answer_item_content_str, answer_id)
+                            answer_text = 'A:%s<br>' % (answer_item_content_str)
                             answer_text_list.append(answer_text)
 
                             #该answer对应的id

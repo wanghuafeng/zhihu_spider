@@ -18,7 +18,8 @@
 	1、sys文件夹:
 	（1）cat_id_mapping_34.txt，话题广场的34个话题及其对应的id，用于抓取topic_id
 	（2）all_topic_id.txt，34个话题所对应的所有topic_id(共1524)
-		(遍历34个id抓取topic_id耗时：16.4s)
+	（3）question_id_all.txt，1524个topic_id所对应的所有question_id
+	（4）question_id_500.txt，1524个topic_id中点赞数大于500的question_id
 	2、data文件夹:
 	（1）question_ids.txt文件
 		所有词频大于500、回复字数在100以内的数据保存在humor_Q_A_old_version1.txt文件中

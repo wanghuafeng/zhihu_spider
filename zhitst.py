@@ -169,30 +169,28 @@ def remove_repeat():
         print len(set(line_list))
         codecs.open('question_id_500.txt', mode='wb').writelines(set(line_list))
 
-total_line_set = set()
-with codecs.open('./sys/all_question_id.txt') as f:
-    for line in f:
-        total_line_set.add(line)
-codecs.open('question_id.txt', mode='wb').writelines(total_line_set)
+def remove_all_repeat():
+    '''对有所文件的id去重'''
+    total_line_set = set()
+    with codecs.open('./sys/all_question_id.txt') as f:
+        for line in f:
+            total_line_set.add(line)
+    codecs.open('question_id.txt', mode='wb').writelines(total_line_set)
 
-def chg():
-    new_line_list = []
-    with codecs.open('question_id_500.txt') as f:
-        index = 0
-        for line in f.readlines():
-            index += 1
-            new_line_list.append(line)
+def splite_file():
+    '''文件切割，把文件切割为N等份'''
+    import split_file
+    filename = 'question_answer_content_2015_05_24.txt'
+    split_file.cut_file(filename, 10)
 
-    list_lenght = len(new_line_list) #文件总行数
-    file_count = 3  #文件被分割为file_count份，并分别写入到文件中
-    partial_count = list_lenght/file_count
-    for file_index in range(file_count):
-        range_start = partial_count * file_index
-        range_end = partial_count * (file_index + 1)
-        print range_start, range_end
-        if file_index == file_count - 1:
-            codecs.open('question_id_500_%s.txt' % file_index, mode='wb').writelines(new_line_list[range_start:])
-        else:
-            codecs.open('question_id_500_%s.txt' % file_index, mode='wb').writelines(new_line_list[range_start:range_end])
-# chg()
+def send_file_to_163():
+    import mail_send
+    for file_index in range(1, 11):
+        filename = 'data/question_answer_content_2015_05_24.txt.partial_%s' % file_index
+        print filename
 
+        with codecs.open(filename) as f:
+            mail_send.send_to_163_mail(f.read(), 'sivilwang@163.com')
+            time.sleep(10)
+
+send_file_to_163()
