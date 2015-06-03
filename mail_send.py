@@ -8,7 +8,7 @@ PATH = os.path.dirname(os.path.abspath(__file__))
 
 mail_host_server = "smtp.163.com"
 mail_user = 'wachfx@163.com'
-mail_password = 'tajiaocuixue'
+mail_password = ''
 
 def send_to_163_mail(mail_content, mailto_list):
     '''发送至邮箱'''
