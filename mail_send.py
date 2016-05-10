@@ -23,17 +23,16 @@ def send_to_163_mail(mail_content, mailto_list):
     s.sendmail(mail_user, mailto_list, msg.as_string())
     s.close()
 
-def send_email_to_evernote(title, mail_content, evernote_to):
-    '''发送至印象笔记'''
-    evernote_note_name = u'知乎'
-    msg = MIMEText(mail_content, _subtype='html', _charset='utf-8')
-    msg['Subject'] = u'%s@%s' % (title, evernote_note_name)
+def send_email_to_evernote(evernote_addr, evernote_title, evernote_note_name, mail_content):
+    '''发送至印象笔记
+    笔记标题@笔记本名称'''
+    msg = MIMEText(mail_content, _subtype='plain', _charset='utf-8')
+    msg['Subject'] = '%s@%s' % (evernote_title, evernote_note_name)#笔记标题@笔记本名称
     msg['From'] = mail_user
-
     s = smtplib.SMTP()
-    s.sendmail(mail_user, evernote_to, msg.as_string())
-    s.connect(mail_host_server)
+    s.connect(mail_host_server, 25)
     s.login(mail_user, mail_password)
+    s.sendmail(mail_user, evernote_addr, msg.as_string())
 
 if __name__ == "__main__":
     mail_to = 'zhihuspider@163.com'
